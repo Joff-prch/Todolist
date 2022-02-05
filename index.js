@@ -3,7 +3,9 @@ import bodyParser from "body-parser";
 import Mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import dataserv from "./config.js";
-
+import User from "./models/User.js";
+import { Helper } from "./assets/helper/helper.js";
+import Todos from "./models/Todos.js";
 
 const app = express();
 const db = dataserv;
@@ -18,10 +20,12 @@ Mongoose.connect(db, err => {
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser());
+const oneDay = 1000 * 60 * 60 * 24;
 app.use(express.static('./assets'));
 app.listen(8080, () => {
     console.log('Le serveur marche');
 })
+
 
 
 app.get('/', async (req, res) => {
@@ -29,9 +33,56 @@ app.get('/', async (req, res) => {
 })
 
 app.post('/', async (req, res) => {
-    res.redirect('/main')
+    if(req.body.name != ''){
+        const search = await User.findOne({name: req.body.name});
+        if (search != null) {
+            res.cookie('user', search._id, { maxAge: oneDay })
+            res.redirect('/main')
+        } else {
+            const user = await new User(req.body);
+            await user.save();
+            res.redirect('/');
+        }
+    }else {
+        res.redirect('/');
+    }
+
 })
 
 app.get('/main', async (req, res) => {
-    res.render('main.twig')
+    const user = await User.findOne({ _id: req.cookies.user })
+    const userTodos = user.todos
+    res.render('main.twig',{
+        user : user.name,
+        todos : userTodos
+    })
 })
+
+app.post('/main', async (req, res) => {
+    const todo = await new Todos(req.body);
+    const user = await User.findOneAndUpdate(
+        {_id: req.cookies.user},
+        { $push : {todos : todo}})
+    await user.save();
+    res.redirect('/main');
+    
+})
+
+app.get('/deleteTodo/:id', async (req, res) => {
+    const id = req.params.id;
+    const user = await User.findOne({ _id : req.cookies.user })
+    const todos = user.todos
+    for(const element in todos){
+        if(todos[element]._id == id){
+            todos.splice(element, 1)
+            break;
+        };
+    }
+    await user.save();
+    res.redirect('/main');
+}) 
+
+app.get('/logout',(req,res) => {
+    res.cookie('user', '',  {maxAge: 0});
+    res.redirect('/');
+});
