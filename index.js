@@ -26,8 +26,6 @@ app.listen(8080, () => {
     console.log('Le serveur marche');
 })
 
-
-
 app.get('/', async (req, res) => {
     res.render('login.twig')
 })
@@ -67,6 +65,10 @@ app.post('/main', async (req, res) => {
     res.redirect('/main');
     
 })
+
+app.get('/updateTodo/:id', async (req, res) => {
+    
+}) 
 
 app.get('/deleteTodo/:id', async (req, res) => {
     const id = req.params.id;
