@@ -66,6 +66,12 @@ body {
     border-radius: 12px;
 }
 
+.alertos {
+    position: absolute;
+    left: 45%;
+    top: 10%;
+}
+
 
 
 

@@ -4,7 +4,6 @@ import Mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import dataserv from "./config.js";
 import User from "./models/User.js";
-import { Helper } from "./assets/helper/helper.js";
 import Todos from "./models/Todos.js";
 
 const app = express();
@@ -39,7 +38,9 @@ app.post('/', async (req, res) => {
         } else {
             const user = await new User(req.body);
             await user.save();
-            res.redirect('/');
+            res.render('login.twig', {
+                message : "<div class='alert alert-success text-center alertos' role='alert'>Inscription enregistrée !</div>"
+            });
         }
     }else {
         res.redirect('/');
@@ -65,10 +66,6 @@ app.post('/main', async (req, res) => {
     res.redirect('/main');
     
 })
-
-app.get('/updateTodo/:id', async (req, res) => {
-    
-}) 
 
 app.get('/deleteTodo/:id', async (req, res) => {
     const id = req.params.id;
